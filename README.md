@@ -8,15 +8,20 @@ This project contains the web UI and API bridge for LoquiLex. It provides:
 
 - **Web UI** (React/Vite) — Interactive interface for configuring and controlling LoquiLex sessions
 - **Two UI versions**:
-  - `app/` — Legacy React/Vite interface
-  - `web/` — Newer React/Vite interface with enhanced features
+  - `app/` — Legacy React/Vite interface (`@loquilex/app`)
+  - `web/` — Newer React/Vite interface with enhanced features (`@loquilex/web`)
+
+This is a **monorepo** using npm workspaces for independent package management.
 
 ## Architecture
 
 ```
 LoquiLex-UI
-├── app/              React/Vite web app (legacy)
-└── web/              React/Vite web app (current)
+├── package.json           Root workspace configuration
+├── app/                   React/Vite web app (legacy) - @loquilex/app
+│   └── package.json       Independent package with own dependencies
+└── web/                   React/Vite web app (current) - @loquilex/web
+    ├── package.json       Independent package with own dependencies
     └── src/
         ├── components/      React components (UI, settings, etc.)
         ├── orchestration/   Client-side utilities and patterns
@@ -33,8 +38,19 @@ LoquiLex-UI
 
 ### Installation
 
+Install all workspace dependencies from the root:
+
 ```bash
 npm install
+```
+
+This will install dependencies for both `app/` and `web/` workspaces automatically.
+
+You can also install dependencies for individual workspaces:
+
+```bash
+cd app && npm install   # Install app dependencies only
+cd web && npm install   # Install web dependencies only
 ```
 
 ### Development
@@ -51,9 +67,79 @@ npm run dev:web   # Run newer app on http://localhost:5174
 Build for production:
 
 ```bash
-npm run build:app
-npm run build:web
+npm run build:app       # Build app workspace only
+npm run build:web       # Build web workspace only
+npm run build           # Build all workspaces
 ```
+
+## NPM Workspace Management
+
+This project uses npm workspaces to manage multiple packages independently.
+
+### Available Commands
+
+#### Development
+```bash
+npm run dev:app         # Start app development server
+npm run dev:web         # Start web development server
+```
+
+#### Building
+```bash
+npm run build:app       # Build app workspace
+npm run build:web       # Build web workspace
+npm run build           # Build all workspaces
+```
+
+#### Testing
+```bash
+npm run test            # Run tests in all workspaces
+npm run test:app        # Run tests in app workspace only
+npm run test:web        # Run tests in web workspace only
+```
+
+#### Type Checking
+```bash
+npm run typecheck       # Type check all workspaces
+npm run typecheck:app   # Type check app workspace only
+npm run typecheck:web   # Type check web workspace only
+```
+
+#### Cleanup
+```bash
+npm run clean:app       # Remove app node_modules and dist
+npm run clean:web       # Remove web node_modules and dist
+npm run clean           # Clean all workspaces and root
+```
+
+### Working with Individual Workspaces
+
+You can run commands in specific workspaces using npm's workspace flag:
+
+```bash
+# Install a package to a specific workspace
+npm install react-query --workspace=@loquilex/app
+npm install zustand --workspace=@loquilex/web
+
+# Run a script in a specific workspace
+npm run dev --workspace=@loquilex/app
+npm run test --workspace=@loquilex/web
+```
+
+### Workspace Structure
+
+Each workspace (`app/` and `web/`) has:
+- Independent `package.json` with its own dependencies
+- Separate build outputs (in respective `dist/` directories)
+- Can be published independently to npm (when ready)
+- Shares dependencies where possible (deduplication)
+
+### Dependency Management
+
+- **Shared dependencies** (like React, Vite, TypeScript) are automatically deduplicated
+- **Version conflicts** are avoided through proper dependency specification
+- Run `npm ls --all` to view the complete dependency tree
+- Run `npm ls <package-name> --all` to check for version conflicts
 
 ## Integration with LoquiLex
 

@@ -4,18 +4,33 @@
   "description": "Web UI and API wrapper for LoquiLex - local live captioning & translation",
   "private": true,
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Guffawaffle/LoquiLex-UI.git"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "workspaces": [
     "app",
     "web"
   ],
   "scripts": {
-    "dev:app": "cd app && npm run dev",
-    "dev:web": "cd web && npm run dev",
-    "build:app": "cd app && npm run build",
-    "build:web": "cd web && npm run build",
-    "test": "npm run test --workspaces",
-    "lint": "npm run lint --workspaces",
-    "format": "npm run format --workspaces"
+    "dev:app": "npm run dev --workspace=@loquilex/app",
+    "dev:web": "npm run dev --workspace=@loquilex/web",
+    "build:app": "npm run build --workspace=@loquilex/app",
+    "build:web": "npm run build --workspace=@loquilex/web",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:app": "npm run test --workspace=@loquilex/app",
+    "test:web": "npm run test --workspace=@loquilex/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "typecheck:app": "npm run typecheck --workspace=@loquilex/app",
+    "typecheck:web": "npm run typecheck --workspace=@loquilex/web",
+    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules",
+    "clean:app": "cd app && rm -rf node_modules dist",
+    "clean:web": "cd web && rm -rf node_modules dist"
   },
   "dependencies": {},
   "devDependencies": {}
