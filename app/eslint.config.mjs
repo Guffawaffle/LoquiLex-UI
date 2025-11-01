@@ -44,6 +44,8 @@ export default [
       'react-hooks/purity': 'warn',
       'react-hooks/immutability': 'warn',
       'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/rules-of-hooks': 'warn',
+      'react-hooks/refs': 'warn',
       'no-empty': 'warn',
       'react/jsx-no-target-blank': 'warn',
       'no-useless-escape': 'warn',
