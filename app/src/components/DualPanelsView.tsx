@@ -19,6 +19,79 @@ export function DualPanelsView() {
   const [isPaused, setIsPaused] = useState(false);
   const captionsEndRef = useRef<HTMLDivElement>(null);
 
+  // Handler functions for WebSocket messages
+  const handleASRPartial = useCallback((data: any) => {
+    setCaptions(prev => {
+      const existing = prev.find(c => c.id === `partial-${data.segment_id || 'current'}`);
+      const line: CaptionLine = {
+        id: `partial-${data.segment_id || 'current'}`,
+        timestamp: data.timestamp,
+        text: data.text || '',
+        final: false,
+      };
+
+      if (existing) {
+        return prev.map(c => c.id === line.id ? line : c);
+      } else {
+        return [...prev, line];
+      }
+    });
+  }, []);
+
+  const handleASRFinal = useCallback((data: any) => {
+    setCaptions(prev => {
+      // Remove any partial with same segment_id and add final
+      const filtered = prev.filter(c => c.id !== `partial-${data.segment_id || 'current'}`);
+      const line: CaptionLine = {
+        id: `final-${data.segment_id || Date.now()}`,
+        timestamp: data.timestamp,
+        text: data.text || '',
+        final: true,
+      };
+      return [...filtered, line];
+    });
+  }, []);
+
+  const handleMTFinal = useCallback((data: any) => {
+    setCaptions(prev =>
+      prev.map(c =>
+        c.id === `final-${data.segment_id}`
+          ? { ...c, translation: data.translation }
+          : c
+      )
+    );
+  }, []);
+
+  const handleStatusUpdate = useCallback((data: any) => {
+    setStatus(prev => ({ ...prev, ...data }));
+  }, []);
+
+  const handleMetricsUpdate = useCallback((data: any) => {
+    setStatus(prev => ({ ...prev, metrics: data }));
+  }, []);
+
+  const handleWebSocketMessage = useCallback((message: any) => {
+    switch (message.type) {
+      case 'asr_partial':
+        handleASRPartial(message.data);
+        break;
+      case 'asr_final':
+        handleASRFinal(message.data);
+        break;
+      case 'mt_final':
+        handleMTFinal(message.data);
+        break;
+      case 'status':
+        handleStatusUpdate(message.data);
+        break;
+      case 'metrics':
+        handleMetricsUpdate(message.data);
+        break;
+      default:
+        console.log('Unknown message type:', message.type);
+    }
+  }, [handleASRPartial, handleASRFinal, handleMTFinal, handleStatusUpdate, handleMetricsUpdate]);
+
   // Auto-scroll to bottom
   const scrollToBottom = useCallback(() => {
     captionsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -84,79 +157,7 @@ export function DualPanelsView() {
         wsRef.current = null;
       }
     };
-  }, [sessionId]);
-
-  const handleWebSocketMessage = (message: any) => {
-    switch (message.type) {
-      case 'asr_partial':
-        handleASRPartial(message.data);
-        break;
-      case 'asr_final':
-        handleASRFinal(message.data);
-        break;
-      case 'mt_final':
-        handleMTFinal(message.data);
-        break;
-      case 'status':
-        handleStatusUpdate(message.data);
-        break;
-      case 'metrics':
-        handleMetricsUpdate(message.data);
-        break;
-      default:
-        console.log('Unknown message type:', message.type);
-    }
-  };
-
-  const handleASRPartial = (data: any) => {
-    setCaptions(prev => {
-      const existing = prev.find(c => c.id === `partial-${data.segment_id || 'current'}`);
-      const line: CaptionLine = {
-        id: `partial-${data.segment_id || 'current'}`,
-        timestamp: data.timestamp,
-        text: data.text || '',
-        final: false,
-      };
-
-      if (existing) {
-        return prev.map(c => c.id === line.id ? line : c);
-      } else {
-        return [...prev, line];
-      }
-    });
-  };
-
-  const handleASRFinal = (data: any) => {
-    setCaptions(prev => {
-      // Remove any partial with same segment_id and add final
-      const filtered = prev.filter(c => c.id !== `partial-${data.segment_id || 'current'}`);
-      const line: CaptionLine = {
-        id: `final-${data.segment_id || Date.now()}`,
-        timestamp: data.timestamp,
-        text: data.text || '',
-        final: true,
-      };
-      return [...filtered, line];
-    });
-  };
-
-  const handleMTFinal = (data: any) => {
-    setCaptions(prev =>
-      prev.map(c =>
-        c.id === `final-${data.segment_id}`
-          ? { ...c, translation: data.translation }
-          : c
-      )
-    );
-  };
-
-  const handleStatusUpdate = (data: any) => {
-    setStatus(prev => ({ ...prev, ...data }));
-  };
-
-  const handleMetricsUpdate = (data: any) => {
-    setStatus(prev => ({ ...prev, metrics: data }));
-  };
+  }, [sessionId, handleWebSocketMessage]);
 
   const togglePause = async () => {
     if (!sessionId) return;
