@@ -1,0 +1,22 @@
+{
+  "name": "loquilex-ui",
+  "version": "0.1.0",
+  "description": "Web UI and API wrapper for LoquiLex - local live captioning & translation",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "app",
+    "web"
+  ],
+  "scripts": {
+    "dev:app": "cd app && npm run dev",
+    "dev:web": "cd web && npm run dev",
+    "build:app": "cd app && npm run build",
+    "build:web": "cd web && npm run build",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "format": "npm run format --workspaces"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
